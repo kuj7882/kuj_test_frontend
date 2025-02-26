@@ -15,7 +15,7 @@ export default defineConfig({
       // 프록시할 경로
       "/api": {
         // 대상 서버
-        target: "http://192.0.2.70:8080",
+        target: "http://192.168.254.63:8080",
         // 대상 서버의 호스트 헤더 변경 여부
         changeOrigin: true,
         // '/api' 부분 제거

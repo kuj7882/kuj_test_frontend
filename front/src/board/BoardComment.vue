@@ -1,157 +1,120 @@
 <template>
-  <div>
-    <!-- 댓글 목록 -->
-    <div v-if="answer.comments.length > 0" class="card my-3">
-      <div v-for="comment in answer.comments" :key="comment.id" class="my-1">
-        <div v-if="showCommentModifyId === comment.id">
-          <input v-model="content" class="form-control mb-3"
-              :disabled="is_login ? false : true"
-              maxlength="500"
-              placeholder="Edit comment">
-          <span style="cursor: pointer; color: blue; margin: 2px;"
-                @click="updateComment(comment.id)">저장</span>
-          <span style="cursor: pointer; color: red; margin: 2px;"
-                @click="stopEditing">취소</span>
+    <div class="comment-create-container">
+      <h2 class="comment-create-title">댓글 작성</h2>
+      <form @submit.prevent="submitComment" class="comment-create-form">
+        <div class="form-group">
+          <label for="author" class="form-label">작성자</label>
+          <input
+            v-model="comment.author"
+            type="text"
+            id="author"
+            class="form-input"
+            placeholder="작성자 이름을 입력하세요"
+            required
+          />
         </div>
-        <div v-if="showCommentModifyId !== comment.id">
-        <span> {{comment.content}}, </span>
-        <span class="text-muted"> - {{comment.user.username}}, </span>
-        <span class="text-muted"> {{formatDate(comment.create_date)}} </span>
-        <span v-if="comment.user && $store.state.username === comment.user.username" 
-              @click="startEditing(comment.id, comment.content)"
-              style="cursor: pointer; color: blue; margin: 2px;">
-             수정</span>
-        <span v-if="comment.user && $store.state.username === comment.user.username"
-              @click="deleteComment(comment.id)"
-              style="cursor: pointer; color: red; margin: 2px;">
-             삭제</span>
-        </div>     
-      </div>
+        <div class="form-group">
+          <label for="content" class="form-label">댓글 내용</label>
+          <textarea
+            v-model="comment.content"
+            id="content"
+            class="form-input"
+            placeholder="댓글 내용을 입력하세요"
+            rows="4"
+            required
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="submit-button">댓글 작성</button>
+        </div>
+      </form>
     </div>
-    <!-- 댓글 목록 끝 -->
-    <!-- 댓글 입력 -->
-    <div>
-      <ErrorComponent :error="error" />
-      <button class="btn btn-sm btn-outline-secondary mb-3"
-              @click="toggleCommentInput"
-              :class="{ 'disabled': !is_login }">
-              댓글 작성</button>
-    </div>
-    <div v-if="showCommentInput">
-       <input v-model="content" class="form-control mb-3"
-              maxlength="500"
-              placeholder="댓글을 입력하세요.">
-       <span @click="postCommentAnswer"
-             style="cursor: pointer; color: blue; margin: 2px;">저장</span>
-       <span @click="toggleCommentInput"
-             style="cursor: pointer; color: red; margin: 2px;">취소</span>
-    </div>
-    <!-- 댓글 입력 끝 -->
-  </div>
-</template>
+  </template>
   
   <script>
- 
-
-  
-  moment.locale('ko')
-  
   export default {
-    components: {
-      ErrorComponent
-    },
-    props: {
-      answer_id: {
-        type: String,
-        required: true
-      }
-    },
     data() {
       return {
-        error: { detail: [] },  
-        answer: { comments:[] },
-        content: "",
-        showCommentModifyId: -1,
-        showCommentInput: false,
-      }
-    },
-    computed: {
-      is_login() {
-        return this.$store.state.is_login;
-      }
+        comment: {
+          author: '',
+          content: '',
+        },
+      };
     },
     methods: {
-      getAnswer() {
-        let url = `/api/answer/detail/${this.answer_id}`
-        fastapi('get', url, {}, (json) => {
-          this.answer = json;
-        });
-      },
-      formatDate(date) {
-        return moment(date).format('YYYY년 MM월 DD일 hh:mm a');
-      },
-      postCommentAnswer() {
-          let url = `/api/comment/create/answer/${this.answer_id}`
-          let params = {
-            content: this.content
-          }
-          fastapi('post', url, params, () => {
-            this.content = ''
-            this.getAnswer()
-            this.toggleCommentInput()
-          },
-          (err_json) => {
-            this.error = err_json
-          }
-        )
-      },
-      updateComment(commentId) {
-          let url = `/api/comment/update`
-          let params = {
-            comment_id: commentId, 
-            content: this.content,
-          }
-          fastapi('put', url, params, () => {
-            this.getAnswer()
-            this.stopEditing()
-          },
-          (err_json) => {
-            this.error = err_json
-          }
-        )
-      },
-      deleteComment(commentId) {
-        if(confirm('정말로 삭제하시겠습니까?')) {
-          let url = `/api/comment/delete`
-          let params = {
-            comment_id: commentId
-          }
-          fastapi('delete', url, params, () => {
-            this.getAnswer()
-            },
-            (err_json) => {
-              this.error = err_json
-          })
-        }
-      },
-      toggleCommentInput() {
-        this.showCommentInput = !this.showCommentInput;
-        this.content = "";
-        this.showCommentModifyId = -1
-      },
-      startEditing(index,_content) {
-        this.showCommentModifyId = index;
-        this.content = _content;
-        this.showCommentInput = false
-      },
-      stopEditing() {
-        this.showCommentModifyId = -1;
+      submitComment() {
+        // 댓글 데이터를 처리하는 로직 (API 호출 등)
+        console.log('댓글이 작성되었습니다:', this.comment);
+        alert('댓글이 작성되었습니다.');
+        
+        // 댓글 작성 후, 페이지 갱신 등 다른 처리
+        this.$router.push({ name: 'BoardDetail', params: { id: this.$route.params.id } }); // 예시로 게시판 상세 페이지로 이동
       },
     },
-    created() {
-      this.getAnswer();
-    },
-  
   };
   </script>
+  
+  <style scoped>
+  .comment-create-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #f4f4f9;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .comment-create-title {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .comment-create-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-label {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    box-sizing: border-box;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+  }
+  
+  .submit-button {
+    padding: 12px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #45a049;
+  }
+  </style>
   
